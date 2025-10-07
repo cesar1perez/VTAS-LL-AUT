@@ -291,6 +291,11 @@
       const [isLoading, setIsLoading] = React.useState(true);
       const [objectivesFilterVend, setObjectivesFilterVend] = React.useState([]);
 
+      // Scroll to top when view changes
+      React.useEffect(() => {
+        window.scrollTo(0, 0);
+      }, [view, objectivesFilterVend]);
+
       // Definición de nombres, colores y objetivos
       const vendorNames = {
         "3": "Carlos C.",
@@ -492,6 +497,51 @@
         }).filter(v => objectivesFilterVend.length === 0 || objectivesFilterVend.includes(v.vendor));
       }, [filteredData, objectivesFilterVend, vendorCodes]);
 
+      // Estadísticas por zona
+      const zoneStats = React.useMemo(() => {
+        return Object.keys(zoneVendors).reduce((acc, zone) => {
+          const vendors = zoneVendors[zone];
+          const zoneData = filteredData.filter(item => vendors.includes(item.codVend));
+          const totalImporte = zoneData.reduce((sum, item) => sum + item.importe, 0);
+
+          // Para el progreso promedio
+          const sumSalesByCat = {};
+          const sumTargetsByCat = {};
+          Object.keys(categoryColors).forEach(cat => {
+            sumSalesByCat[cat] = 0;
+            sumTargetsByCat[cat] = 0;
+          });
+
+          vendors.forEach(v => {
+            const objectives = vendorObjectives[v] || {};
+            Object.keys(categoryColors).forEach(cat => {
+              sumTargetsByCat[cat] += objectives[cat] || 0;
+            });
+          });
+
+          zoneData.forEach(item => {
+            const cat = classificationMap[item.clasificacion] || item.clasificacion;
+            if (sumSalesByCat[cat] !== undefined) {
+              sumSalesByCat[cat] += item.cantidad;
+            }
+          });
+
+          const percentages = [];
+          Object.keys(sumTargetsByCat).forEach(cat => {
+            const target = sumTargetsByCat[cat];
+            if (target > 0) {
+              const sales = sumSalesByCat[cat] || 0;
+              percentages.push((sales / target) * 100);
+            }
+          });
+
+          const avgProgress = percentages.length > 0 ? percentages.reduce((sum, p) => sum + p, 0) / percentages.length : 0;
+
+          acc[zone] = { totalImporte, avgProgress: avgProgress.toFixed(2) };
+          return acc;
+        }, {});
+      }, [filteredData, zoneVendors, vendorObjectives, classificationMap, categoryColors]);
+
       // Función para determinar el color según la cantidad
       const getColor = (value, type) => {
         if (type === "cantidad") return value > 15 ? "bg-green-500 text-black" : value < 5 ? "bg-red-500 text-white" : "bg-yellow-400 text-black";
@@ -657,7 +707,7 @@
                 y: {
                   grid: { display: false },
                   ticks: {
-                    color: '#e2e8f0',
+                    color: vendorTotals.map(item => vendorColors[item.vendor] || '#e2e8f0'),
                     font: {
                       size: 12,
                       family: 'Inter'
@@ -768,6 +818,7 @@
                   </button>
                 </div>
               ) : (
+                <>
                 <div className="flex flex-col sm:flex-row gap-6 flex-wrap justify-center">
                   <div className="flex flex-col items-center">
                     <button
@@ -796,6 +847,13 @@
                     </ul>
                   </div>
                 </div>
+                <button
+                  onClick={() => setShowSubButtons(false)}
+                  className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-500 transition-colors font-semibold mt-4"
+                >
+                  Volver al Inicio
+                </button>
+                </>
               )}
             </>
           )}
@@ -942,15 +1000,33 @@
             </div>
           </div>
           <div className="flex justify-center gap-4 flex-wrap">
-            <button onClick={() => setObjectivesFilterVend(zoneVendors['TULANCINGO'])} className="custom-button tulancingo-button">TULANCINGO</button>
-            <button onClick={() => setObjectivesFilterVend(zoneVendors['PACHUCA'])} className="custom-button pachuca-button">PACHUCA</button>
-            <button onClick={() => setObjectivesFilterVend(zoneVendors['SAHAGÚN'])} className="custom-button sahagun-button">SAHAGÚN</button>
-            <button onClick={() => setObjectivesFilterVend(zoneVendors['TIZAYUCA'])} className="custom-button tizayuca-button">TIZAYUCA</button>
+            <button onClick={() => setObjectivesFilterVend(zoneVendors['TULANCINGO'])} className="custom-button tulancingo-button">
+              TULANCINGO - Importe: <span className="text-green-300">{zoneStats['TULANCINGO'].totalImporte.toLocaleString()}</span> - Avance: <span className="text-blue-300">{zoneStats['TULANCINGO'].avgProgress}%</span>
+            </button>
+            <button onClick={() => setObjectivesFilterVend(zoneVendors['PACHUCA'])} className="custom-button pachuca-button">
+              PACHUCA - Importe: <span className="text-green-300">{zoneStats['PACHUCA'].totalImporte.toLocaleString()}</span> - Avance: <span className="text-blue-300">{zoneStats['PACHUCA'].avgProgress}%</span>
+            </button>
+            <button onClick={() => setObjectivesFilterVend(zoneVendors['SAHAGÚN'])} className="custom-button sahagun-button">
+              SAHAGÚN - Importe: <span className="text-green-300">{zoneStats['SAHAGÚN'].totalImporte.toLocaleString()}</span> - Avance: <span className="text-blue-300">{zoneStats['SAHAGÚN'].avgProgress}%</span>
+            </button>
+            <button onClick={() => setObjectivesFilterVend(zoneVendors['TIZAYUCA'])} className="custom-button tizayuca-button">
+              TIZAYUCA - Importe: <span className="text-green-300">{zoneStats['TIZAYUCA'].totalImporte.toLocaleString()}</span> - Avance: <span className="text-blue-300">{zoneStats['TIZAYUCA'].avgProgress}%</span>
+            </button>
             <button onClick={() => setObjectivesFilterVend([])} className="custom-button all-zones-button">Todas las Zonas</button>
           </div>
           <div className="section-frame flex flex-col gap-4">
             <h2 className="text-2xl sm:text-3xl font-bold text-blue-400 text-center section-title">Progreso por Vendedor</h2>
-            <div className="flex justify-center">
+            <div className="flex justify-center gap-4 flex-wrap">
+              <select
+                className="p-3 rounded-lg text-white custom-select w-full sm:w-1/4"
+                value={filterMonth}
+                onChange={(e) => setFilterMonth(e.target.value)}
+              >
+                <option value="">Todos los Meses</option>
+                {months.map((month) => (
+                  <option key={month} value={month}>{month}</option>
+                ))}
+              </select>
               <select
                 multiple
                 size="3"
