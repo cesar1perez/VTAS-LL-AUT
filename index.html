@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interfaz VTS LLAN/AUT</title>
+  <script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.development.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background: linear-gradient(135deg, #0f172a, #1e293b);
+      position: relative;
+      overflow-x: hidden;
+      font-family: 'Inter', sans-serif;
+      color: #e2e8f0;
+    }
+    .container {
+      background: linear-gradient(145deg, #1e293b, #0f172a);
+      border: 2px solid rgba(96, 165, 250, 0.3);
+      border-radius: 1.5rem;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+      padding: 2rem;
+      margin: 1rem auto;
+      position: relative;
+      overflow: hidden;
+    }
+    .container::before {
+      content: '';
+      position: absolute;
+      top: -2px;
+      left: -2px;
+      right: -2px;
+      bottom: -2px;
+      border-radius: 1.5rem;
+      background: linear-gradient(45deg, #60a5fa, #a78bfa);
+      z-index: -1;
+      opacity: 0.2;
+    }
+    .header-container {
+      position: relative;
+      background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAACgCAMAAADkTV1aAAAAA1BMVEUAAACnej3aAAAASElEQVR4nO3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPCHYAAACgAABT3c1YAAAAAElFTkSuQmCC') center/cover no-repeat;
+      background-blend-mode: overlay;
+      opacity: 0.9;
+      padding: 2rem 1rem;
+      border-radius: 1rem;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+      margin-bottom: 2rem;
+      text-align: center;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .header-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(to bottom, rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.6));
+      border-radius: 1rem;
+    }
+    .header-container h1, .header-container p {
+      position: relative;
+      z-index: 1;
+    }
+    .header-3d {
+      font-family: 'Poppins', sans-serif;
+      font-weight: 800;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5), 
+                   -1px -1px 2px rgba(255, 255, 255, 0.2);
+    }
+    .custom-button {
+      background: linear-gradient(145deg, #1f2937, #374151);
+      border: 2px solid #6b7280;
+      border-radius: 0.75rem;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 2px 4px rgba(255, 255, 255, 0.1);
+      transition: all 0.3s ease;
+      padding: 1rem 2rem;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 600;
+      color: #ffffff;
+      position: relative;
+    }
+    .custom-button:hover {
+      background: linear-gradient(145deg, #374151, #4b5563);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3), inset 0 3px 6px rgba(255, 255, 255, 0.15);
+      transform: translateY(-2px);
+    }
+    .tulancingo-button {
+      background: linear-gradient(145deg, #334155, #475569);
+    }
+    .tulancingo-button:hover {
+      background: linear-gradient(145deg, #475569, #64748b);
+    }
+    .pachuca-button {
+      background: linear-gradient(145deg, #374151, #4b5563);
+    }
+    .pachuca-button:hover {
+      background: linear-gradient(145deg, #4b5563, #6b7280);
+    }
+    .sahagun-button {
+      background: linear-gradient(145deg, #1f2937, #374151);
+    }
+    .sahagun-button:hover {
+      background: linear-gradient(145deg, #374151, #4b5563);
+    }
+    .tizayuca-button {
+      background: linear-gradient(145deg, #111827, #1f2937);
+    }
+    .tizayuca-button:hover {
+      background: linear-gradient(145deg, #1f2937, #374151);
+    }
+    .all-zones-button {
+      background: linear-gradient(145deg, #6b7280, #9ca3af);
+    }
+    .all-zones-button:hover {
+      background: linear-gradient(145deg, #9ca3af, #d1d5db);
+    }
+    .custom-select {
+      background: linear-gradient(145deg, #1e293b, #0f172a);
+      border: 2px solid #6b7280;
+      border-radius: 0.5rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), inset 0 1px 2px rgba(0, 0, 0, 0.5);
+      transition: all 0.3s ease;
+      font-family: 'Inter', sans-serif;
+    }
+    .custom-select:hover {
+      border-color: #9ca3af;
+      box-shadow: 0 6px 8px rgba(0, 0, 0, 0.3), inset 0 2px 4px rgba(0, 0, 0, 0.5);
+    }
+    .table-header {
+      background: linear-gradient(to right, #4b5563, #6b7280);
+    }
+    .prospect-table-header {
+      background: linear-gradient(to right, #10b981, #34d399);
+    }
+    .section-frame {
+      background: #1e293b;
+      border: 2px solid rgba(107, 114, 128, 0.5);
+      border-radius: 1rem;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+      padding: 1.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .section-frame::before {
+      content: '';
+      position: absolute;
+      top: -2px;
+      left: -2px;
+      right: -2px;
+      bottom: -2px;
+      border-radius: 1rem;
+      background: linear-gradient(45deg, #6b7280, #9ca3af);
+      z-index: -1;
+      opacity: 0.1;
+    }
+    .section-title {
+      font-family: 'Poppins', sans-serif;
+      font-weight: 600;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+      border-bottom: 2px solid #6b7280;
+      padding-bottom: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    .watermark {
+      position: absolute;
+      z-index: -1;
+      opacity: 0.15;
+      pointer-events: none;
+    }
+    .watermark-logo-roma {
+      bottom: 20px;
+      right: 20px;
+      width: 300px;
+      height: 100px;
+      background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAT4AAACgCAMAAADkTV1aAAAAA1BMVEUAAACnej3aAAAASElEQVR4nO3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPCHYAAACgAABT3c1YAAAAAElFTkSuQmCC') no-repeat center;
+      background-size: contain;
+    }
+    .progress-bar {
+      background: #2d3748;
+      border-radius: 0.5rem;
+      overflow: hidden;
+      height: 1.5rem;
+      position: relative;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      transition: width 0.5s ease-in-out;
+    }
+    @media (max-width: 640px) {
+      table { font-size: 0.65rem; }
+      th, td { padding: 0.4rem; }
+      .container { padding: 1rem; }
+      select { font-size: 0.8rem; padding: 0.5rem; }
+      h1 { font-size: 1.75rem; }
+      h2 { font-size: 1.5rem; }
+      canvas { max-height: 250px; }
+      .custom-button { padding: 0.75rem 1.5rem; font-size: 0.9rem; }
+      .section-frame { padding: 1rem; }
+      .progress-bar { height: 1rem; }
+    }
+    @media (min-width: 641px) {
+      table { font-size: 0.85rem; }
+      th, td { padding: 0.75rem; }
+      select { font-size: 0.9rem; padding: 0.75rem; }
+      canvas { max-height: 350px; }
+    }
+  </style>
+</head>
+<body class="min-h-screen">
+  <div class="watermark watermark-logo-roma"></div>
+  <div id="root" class="container mx-auto"></div>
+
+  <script type="text/babel">
+    // Registrar el plugin de datalabels para Chart.js
+    Chart.register(ChartDataLabels);
+
+    function parseNumber(value) {
+      if (!value || value === "") return 0;
+      const cleaned = String(value).replace(/[^0-9.-]+/g, '');
+      return Number(cleaned) || 0;
+    }
+
+    function getMonthName(dateString) {
+      if (!dateString || dateString.trim() === "") return "Mes desconocido";
+      let date;
+      const cleanedDateString = dateString.trim().replace(/\s+/g, ' ');
+      
+      const formats = [
+        { regex: /^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2}):(\d{2})$/, parse: (match) => new Date(`${match[3]}-${match[2]}-${match[1]}T${match[4]}:${match[5]}:${match[6]}`) },
+        { regex: /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/, parse: (match) => new Date(`${match[3]}-${match[2]}-${match[1]}`) },
+        { regex: /^(\d{4})-(\d{1,2})-(\d{1,2})\s+(\d{1,2}):(\d{2}):(\d{2})$/, parse: (match) => new Date(`${match[1]}-${match[2]}-${match[3]}T${match[4]}:${match[5]}:${match[6]}`) },
+        { regex: /^(\d{4})-(\d{1,2})-(\d{1,2})$/, parse: (match) => new Date(`${match[1]}-${match[2]}-${match[3]}`) },
+        { regex: /^(\d{1,2})-(\d{1,2})-(\d{4})$/, parse: (match) => new Date(`${match[3]}-${match[1]}-${match[2]}`) },
+        { regex: /^(\d{4})\/(\d{1,2})\/(\d{1,2})$/, parse: (match) => new Date(`${match[1]}-${match[2]}-${match[3]}`) },
+      ];
+
+      for (const format of formats) {
+        const match = cleanedDateString.match(format.regex);
+        if (match) {
+          date = format.parse(match);
+          break;
+        }
+      }
+
+      if (!date || isNaN(date?.getTime())) {
+        date = new Date(cleanedDateString);
+      }
+
+      if (isNaN(date?.getTime())) {
+        const parts = cleanedDateString.split(/[\s\/-]+/);
+        if (parts.length >= 3) {
+          date = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+          if (isNaN(date?.getTime())) {
+            date = new Date(`${parts[2]}-${parts[0]}-${parts[1]}`);
+          }
+        }
+      }
+
+      if (isNaN(date?.getTime())) {
+        console.warn(`No se pudo parsear la fecha: "${dateString}"`);
+        return "Mes desconocido";
+      }
+
+      const monthNames = [
+        "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+        "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+      ];
+      return monthNames[date.getMonth()];
+    }
+
+    function SalesTable() {
+      const [data, setData] = React.useState([]);
+      const [filterVend, setFilterVend] = React.useState([]);
+      const [filterClas, setFilterClas] = React.useState("");
+      const [filterDate, setFilterDate] = React.useState("");
+      const [filterMonth, setFilterMonth] = React.useState("");
+      const [filterClients, setFilterClients] = React.useState([]);
+      const [view, setView] = React.useState("home");
+      const [showSubButtons, setShowSubButtons] = React.useState(false);
+      const tableRef = React.useRef(null);
+      const chartRef = React.useRef(null);
+      const chartInstanceRef = React.useRef(null);
+      const [error, setError] = React.useState(null);
+      const [isLoading, setIsLoading] = React.useState(true);
+      const [objectivesFilterVend, setObjectivesFilterVend] = React.useState([]);
+
+      // Definición de nombres, colores y objetivos
+      const vendorNames = {
+        "3": "Carlos C.",
+        "5": "Ulises A.",
+        "6": "Miguel L.",
+        "7": "Alfredo T.",
+        "8": "Nacional/Empresarial",
+        "12": "Ruben L.",
+        "23": "Enrique R.",
+        "71": "Cecilia P.",
+        "72": "Oscar F.",
+        "22": "Celene S."
+      };
+
+      const vendorColors = {
+        "3": "#EF4444", // Red
+        "4": "#D4A5A5",
+        "5": "#EAB308", // Yellow
+        "6": "#6B7280", // Gray
+        "7": "#22C55E", // Green
+        "8": "#3B82F6", // Blue
+        "12": "#EC4899", // Pink
+        "23": "#8B5CF6", // Purple
+        "71": "#F59E0B", // Orange
+        "72": "#14B8A6", // Teal
+        "22": "#6366F1", // Indigo
+        "21": "#F87171" // Light Red
+      };
+
+      const companyObjectives = {
+        Acumuladores: 6314,
+        Lubricantes: 51500,
+        Motobaterias: 550,
+        Filtros: 1000
+      };
+
+      const vendorObjectives = {
+        "3": { // Carlos C.
+          Acumuladores: 2200,
+          Lubricantes: 8500,
+          Motobaterias: 50,
+          Filtros: 150
+        },
+        "6": { // Miguel L.
+          Acumuladores: 706,
+          Lubricantes: 10000,
+          Motobaterias: 150,
+          Filtros: 200
+        },
+        "7": { // Alfredo T.
+          Acumuladores: 0,
+          Lubricantes: 3000,
+          Motobaterias: 0,
+          Filtros: 0
+        },
+        "12": { // Ruben L.
+          Acumuladores: 630,
+          Lubricantes: 10000,
+          Motobaterias: 80,
+          Filtros: 200
+        },
+        "23": { // Enrique R.
+          Acumuladores: 110,
+          Lubricantes: 7000,
+          Motobaterias: 80,
+          Filtros: 130
+        },
+        "71": { // Cecilia P.
+          Acumuladores: 2212,
+          Lubricantes: 1000,
+          Motobaterias: 80,
+          Filtros: 20
+        },
+        "72": { // Oscar F.
+          Acumuladores: 122,
+          Lubricantes: 3000,
+          Motobaterias: 30,
+          Filtros: 100
+        },
+        "22": { // Celene S.
+          Acumuladores: 334,
+          Lubricantes: 9000,
+          Motobaterias: 80,
+          Filtros: 200
+        }
+      };
+
+      const zoneVendors = {
+        'TULANCINGO': ['3', '12', '6', '7', '5', '8'],
+        'PACHUCA': ['23', '71'],
+        'SAHAGÚN': ['72'],
+        'TIZAYUCA': ['22']
+      };
+
+      const categoryColors = {
+        Acumuladores: '#10B981',
+        Lubricantes: '#3B82F6',
+        Motobaterias: '#F59E0B',
+        Filtros: '#8B5CF6'
+      };
+
+      // Mapeo de clasificaciones del CSV a categorías internas
+      const classificationMap = {
+        '8 MOTOBAT': 'Motobaterias',
+        '5 ACUMULAD': 'Acumuladores',
+        '6 FILTROS': 'Filtros',
+        '7 LUBRICAN': 'Lubricantes'
+      };
+
+      // Memorización de listas para filtros
+      const vendorCodes = React.useMemo(() => [...new Set(data.map(item => item.codVend))].sort(), [data]);
+      const clasificaciones = React.useMemo(() => [...new Set(data.map(item => item.clasificacion))].sort(), [data]);
+      const fechas = React.useMemo(() => [...new Set(data.map(item => item.fecha))].sort(), [data]);
+      const months = React.useMemo(() => {
+        const monthSet = new Set(data.map(item => getMonthName(item.fecha)).filter(m => m !== "Mes desconocido"));
+        const monthOrder = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+        return [...monthSet].sort((a, b) => monthOrder.indexOf(a) - monthOrder.indexOf(b));
+      }, [data]);
+      const clientes = React.useMemo(() => [...new Set(data.map(item => item.cliente))].sort(), [data]);
+
+      // Datos filtrados según los filtros seleccionados
+      const filteredData = React.useMemo(() => {
+        let result = [...data];
+        if (filterVend.length > 0) result = result.filter(item => filterVend.includes(item.codVend));
+        if (filterClas) result = result.filter(item => item.clasificacion === filterClas);
+        if (filterDate) result = result.filter(item => item.fecha === filterDate);
+        if (filterMonth) result = result.filter(item => getMonthName(item.fecha) === filterMonth);
+        if (filterClients.length > 0) {
+          result = result.filter(item => filterClients.includes(item.cliente));
+        }
+        return result.sort((a, b) => b.importe - a.importe);
+      }, [data, filterVend, filterClas, filterDate, filterMonth, filterClients]);
+
+      // Totales de cantidad e importe
+      const totals = React.useMemo(() => {
+        return filteredData.reduce(
+          (acc, item) => {
+            acc.cantidad += item.cantidad;
+            acc.importe += item.importe;
+            return acc;
+          },
+          { cantidad: 0, importe: 0 }
+        );
+      }, [filteredData]);
+
+      // Totales por vendedor para la tabla de líderes
+      const vendorTotals = React.useMemo(() => {
+        const totalsByVendor = filteredData.reduce((acc, item) => {
+          if (!acc[item.codVend]) {
+            acc[item.codVend] = 0;
+          }
+          acc[item.codVend] += item.cantidad;
+          return acc;
+        }, {});
+        return Object.entries(totalsByVendor)
+          .map(([vendor, cantidad]) => ({ vendor, cantidad }))
+          .sort((a, b) => b.cantidad - a.cantidad);
+      }, [filteredData]);
+
+      // Progreso general de la empresa
+      const companyProgress = React.useMemo(() => {
+        const salesByCategory = filteredData.reduce((acc, item) => {
+          const category = classificationMap[item.clasificacion] || item.clasificacion;
+          if (!acc[category]) acc[category] = 0;
+          acc[category] += item.cantidad;
+          return acc;
+        }, {});
+        return Object.keys(companyObjectives).map(category => ({
+          category,
+          sales: salesByCategory[category] || 0,
+          target: companyObjectives[category],
+          percentage: ((salesByCategory[category] || 0) / companyObjectives[category] * 100).toFixed(2)
+        }));
+      }, [filteredData]);
+
+      // Progreso por vendedor
+      const vendorProgress = React.useMemo(() => {
+        const salesByVendorAndCategory = filteredData.reduce((acc, item) => {
+          const vendor = item.codVend;
+          const rawCategory = item.clasificacion;
+          const category = classificationMap[rawCategory] || rawCategory;
+          if (!acc[vendor]) acc[vendor] = {};
+          if (!acc[vendor][category]) acc[vendor][category] = 0;
+          acc[vendor][category] += item.cantidad;
+          return acc;
+        }, {});
+
+        return vendorCodes.map(vendor => {
+          const objectives = vendorObjectives[vendor] || {};
+          return {
+            vendor,
+            progress: Object.keys(categoryColors).map(category => ({
+              category,
+              sales: salesByVendorAndCategory[vendor]?.[category] || 0,
+              target: objectives[category] || 0,
+              percentage: objectives[category] ? ((salesByVendorAndCategory[vendor]?.[category] || 0) / objectives[category] * 100).toFixed(2) : null
+            }))
+          };
+        }).filter(v => objectivesFilterVend.length === 0 || objectivesFilterVend.includes(v.vendor));
+      }, [filteredData, objectivesFilterVend, vendorCodes]);
+
+      // Función para determinar el color según la cantidad
+      const getColor = (value, type) => {
+        if (type === "cantidad") return value > 15 ? "bg-green-500 text-black" : value < 5 ? "bg-red-500 text-white" : "bg-yellow-400 text-black";
+        return "";
+      };
+
+      // Carga de datos desde Google Drive
+      React.useEffect(() => {
+        const csvUrl = "https://docs.google.com/spreadsheets/d/1Oa4a5rJp0W2IhIlAa5iwCCWOK9KkRgQp/export?format=csv";
+        const fetchData = () => {
+          const scrollPosition = tableRef.current ? tableRef.current.scrollLeft : 0;
+          Papa.parse(csvUrl, {
+            download: true,
+            header: true,
+            skipEmptyLines: true,
+            complete: (result) => {
+              if (!result.data || result.data.length === 0) {
+                setError("El archivo CSV está vacío o no contiene datos válidos.");
+                setIsLoading(false);
+                return;
+              }
+              const parsedData = result.data
+                .filter(row => row["COD DE VEND"] && row["CANTIDAD"] && row["CLASIFICACION"]) // Filtrar filas incompletas
+                .map(row => ({
+                  codVend: String(row["COD DE VEND"]).trim() || "",
+                  cantidad: parseNumber(row["CANTIDAD"]),
+                  importe: parseNumber(row["IMPORTE"]),
+                  cliente: row["NOMBRE DEL CLIENTE"]?.trim() || "",
+                  codCliente: row["CODIGO DEL CLIENTE"]?.trim() || "",
+                  clasificacion: row["CLASIFICACION"]?.trim() || "",
+                  almacen: row["ALMACEN"]?.trim() || "",
+                  factura: row["FACTURA"]?.trim() || "",
+                  descuento: parseNumber(row["DESCUENTO"]),
+                  descripcion: row["DESCRIPCION"]?.trim() || "",
+                  fecha: row["FECHA"]?.trim() || "",
+                }));
+              setData(parsedData);
+              setError(null);
+              setIsLoading(false);
+              if (tableRef.current) {
+                tableRef.current.scrollLeft = scrollPosition;
+              }
+            },
+            error: (err) => {
+              console.error("Error al cargar el CSV:", err);
+              setError("No se pudo cargar los datos. Verifica la conexión o la URL del CSV.");
+              setIsLoading(false);
+            },
+          });
+        };
+        fetchData();
+        const interval = setInterval(fetchData, 60000);
+        return () => clearInterval(interval);
+      }, []);
+
+      // Configuración del gráfico para la tabla de líderes
+      React.useEffect(() => {
+        if (chartRef.current && vendorTotals.length > 0 && view === "leaders") {
+          if (chartInstanceRef.current) {
+            chartInstanceRef.current.destroy();
+          }
+
+          const maxCantidad = Math.max(...vendorTotals.map(item => item.cantidad));
+          const suggestedMax = maxCantidad * 1.2;
+
+          const ctx = chartRef.current.getContext('2d');
+          chartInstanceRef.current = new Chart(ctx, {
+            type: 'bar',
+            data: {
+              labels: vendorTotals.map(item => vendorNames[item.vendor] || item.vendor),
+              datasets: [{
+                label: 'Cantidad por Vendedor',
+                data: vendorTotals.map(item => item.cantidad),
+                backgroundColor: vendorTotals.map(item => vendorColors[item.vendor] || '#6B7280'),
+                borderColor: 'rgba(255, 255, 255, 0.2)',
+                borderWidth: 1,
+                categoryPercentage: 0.8,
+                barPercentage: 0.9,
+              }],
+            },
+            options: {
+              indexAxis: 'y', // Cambiado a barras horizontales para mejor legibilidad de etiquetas
+              responsive: true,
+              maintainAspectRatio: false,
+              animation: {
+                duration: 1000,
+                easing: 'easeOutQuart'
+              },
+              plugins: {
+                title: {
+                  display: true,
+                  text: 'Ranking de Vendedores por Cantidad',
+                  color: '#e2e8f0',
+                  font: {
+                    size: 16,
+                    family: 'Poppins',
+                    weight: '600'
+                  },
+                  padding: {
+                    top: 10,
+                    bottom: 20
+                  }
+                },
+                legend: { display: false },
+                tooltip: {
+                  backgroundColor: 'rgba(30, 41, 59, 0.9)',
+                  titleColor: '#FFFFFF',
+                  bodyColor: '#e2e8f0',
+                  borderColor: '#60a5fa',
+                  borderWidth: 1,
+                  cornerRadius: 4,
+                  padding: 10,
+                  titleFont: { size: 14, family: 'Inter' },
+                  bodyFont: { size: 12, family: 'Inter' }
+                },
+                datalabels: {
+                  anchor: 'end',
+                  align: 'right',
+                  offset: 4,
+                  color: '#e2e8f0',
+                  font: {
+                    size: 12,
+                    family: 'Inter',
+                    weight: '500'
+                  },
+                  backgroundColor: 'rgba(15, 23, 42, 0.7)',
+                  borderRadius: 4,
+                  padding: {
+                    top: 4,
+                    bottom: 4,
+                    left: 6,
+                    right: 6
+                  },
+                  formatter: (value) => value.toLocaleString(),
+                },
+              },
+              scales: {
+                x: {
+                  grid: {
+                    color: 'rgba(226, 232, 240, 0.1)',
+                    lineWidth: 1
+                  },
+                  ticks: {
+                    color: '#e2e8f0',
+                    font: {
+                      size: 12,
+                      family: 'Inter'
+                    },
+                    padding: 10
+                  },
+                  beginAtZero: true,
+                  suggestedMax: suggestedMax,
+                  title: {
+                    display: true,
+                    text: 'Cantidad',
+                    color: '#e2e8f0',
+                    font: {
+                      size: 12,
+                      family: 'Inter'
+                    }
+                  }
+                },
+                y: {
+                  grid: { display: false },
+                  ticks: {
+                    color: '#e2e8f0',
+                    font: {
+                      size: 12,
+                      family: 'Inter'
+                    },
+                    padding: 10
+                  },
+                  title: {
+                    display: true,
+                    text: 'Vendedor',
+                    color: '#e2e8f0',
+                    font: {
+                      size: 12,
+                      family: 'Inter'
+                    }
+                  }
+                },
+              },
+              layout: {
+                padding: {
+                  left: 10,
+                  right: 30,
+                  top: 10,
+                  bottom: 10
+                }
+              },
+            },
+          });
+        }
+        return () => {
+          if (chartInstanceRef.current) {
+            chartInstanceRef.current.destroy();
+          }
+        };
+      }, [vendorTotals, view]);
+
+      // Handlers para cambios en los filtros
+      const handleVendorChange = (e) => {
+        const selectedOptions = Array.from(e.target.selectedOptions).map(option => option.value);
+        if (selectedOptions.includes("")) {
+          setFilterVend([]);
+        } else {
+          const selected = selectedOptions.filter(option => option !== "").slice(0, 3);
+          setFilterVend(selected);
+        }
+      };
+
+      const handleObjectivesVendorChange = (e) => {
+        const selectedOptions = Array.from(e.target.selectedOptions).map(option => option.value);
+        if (selectedOptions.includes("")) {
+          setObjectivesFilterVend([]);
+        } else {
+          const selected = selectedOptions.filter(option => option !== "");
+          setObjectivesFilterVend(selected);
+        }
+      };
+
+      const handleClientChange = (e) => {
+        const selectedOptions = Array.from(e.target.selectedOptions).map(option => option.value);
+        if (selectedOptions.includes("")) {
+          setFilterClients([]);
+        } else {
+          const selected = selectedOptions.filter(option => option !== "").slice(0, 2);
+          setFilterClients(selected);
+        }
+      };
+
+      const resetClientFilter = () => {
+        setFilterClients([]);
+        const selectElement = document.querySelector('select[multiple]:last-of-type');
+        if (selectElement) {
+          selectElement.value = [];
+        }
+      };
+
+      const handleMainButtonClick = () => {
+        setShowSubButtons(true);
+      };
+
+      const handleObjectivesClick = () => {
+        setView("objectives");
+      };
+
+      // Renderizar la vista de inicio
+      const renderHome = () => (
+        <div className="flex flex-col items-center gap-8">
+          {isLoading ? (
+            <p className="text-lg sm:text-xl text-blue-300 text-center font-semibold">
+              Cargando la interfaz, por favor espera...
+            </p>
+          ) : (
+            <>
+              <div className="header-container w-full">
+                <h1 className="text-3xl sm:text-4xl font-extrabold text-white mb-2 tracking-wide header-3d">INTERFAZ - VTS - LLAN/AUT</h1>
+                <p className="text-sm sm:text-base text-blue-200 header-3d">
+                  Información confidencial · Uso interno exclusivo · Prohibida su reproducción sin autorización
+                </p>
+              </div>
+              <p className="text-lg sm:text-xl text-blue-300 text-center font-semibold">
+                Bienvenido(a) a la Interfaz de Ventas. Analice y optimice el rendimiento de su equipo con nuestras herramientas avanzadas.
+              </p>
+              {!showSubButtons ? (
+                <div className="flex justify-center">
+                  <button
+                    onClick={handleMainButtonClick}
+                    className="custom-button"
+                  >
+                    Llanterama Tulancingo
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-col sm:flex-row gap-6 flex-wrap justify-center">
+                  <div className="flex flex-col items-center">
+                    <button
+                      onClick={() => setView("leaders")}
+                      className="custom-button"
+                    >
+                      Tabla de Líderes
+                    </button>
+                    <ul className="text-sm text-gray-300 mt-2 list-disc list-inside">
+                      <li>Visualice el ranking de vendedores por cantidad.</li>
+                      <li>Compare el desempeño con gráficos dinámicos.</li>
+                      <li>Filtre por vendedor, fecha y más.</li>
+                    </ul>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <button
+                      onClick={handleObjectivesClick}
+                      className="custom-button"
+                    >
+                      Resultados de Objetivos
+                    </button>
+                    <ul className="text-sm text-gray-300 mt-2 list-disc list-inside">
+                      <li>Vea el progreso hacia los objetivos mensuales.</li>
+                      <li>Analice el desempeño por vendedor y categoría.</li>
+                      <li>Filtre por vendedor para detalles específicos.</li>
+                    </ul>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      );
+
+      // Renderizar la vista de tabla de líderes
+      const renderLeaders = () => (
+        <div className="space-y-6">
+          <div className="header-container">
+            <h1 className="text-3xl sm:text-4xl font-extrabold text-white mb-2 tracking-wide header-3d">INTERFAZ - VTS - LLAN/AUT</h1>
+            <p className="text-sm sm:text-base text-blue-200 header-3d">
+              Información confidencial · Uso interno exclusivo · Prohibida su reproducción sin autorización
+            </p>
+          </div>
+          <button
+            onClick={() => setView("home")}
+            className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-500 transition-colors font-semibold"
+          >
+            Volver al Inicio
+          </button>
+          <div className="section-frame flex flex-col items-center gap-4">
+            <h2 className="text-2xl sm:text-3xl font-bold text-blue-400 text-center section-title">Filtros de Ventas</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4 w-full">
+              <select
+                multiple
+                size="3"
+                className="p-3 rounded-lg text-white custom-select"
+                value={filterVend}
+                onChange={handleVendorChange}
+              >
+                <option value="">Todos los Vendedores</option>
+                {vendorCodes.map((code) => (
+                  <option key={code} value={code}>{vendorNames[code] || code}</option>
+                ))}
+              </select>
+              <select
+                className="p-3 rounded-lg text-white custom-select"
+                value={filterClas}
+                onChange={(e) => setFilterClas(e.target.value)}
+              >
+                <option value="">Todas las Clasificaciones</option>
+                {clasificaciones.map((clas) => (
+                  <option key={clas} value={clas}>{clas}</option>
+                ))}
+              </select>
+              <select
+                className="p-3 rounded-lg text-white custom-select"
+                value={filterDate}
+                onChange={(e) => setFilterDate(e.target.value)}
+              >
+                <option value="">Todas las Fechas</option>
+                {fechas.map((fecha) => (
+                  <option key={fecha} value={fecha}>{fecha}</option>
+                ))}
+              </select>
+              <select
+                className="p-3 rounded-lg text-white custom-select"
+                value={filterMonth}
+                onChange={(e) => setFilterMonth(e.target.value)}
+              >
+                <option value="">Todos los Meses</option>
+                {months.map((month) => (
+                  <option key={month} value={month}>{month}</option>
+                ))}
+              </select>
+              <div className="flex items-center gap-2">
+                <select
+                  multiple
+                  size="3"
+                  className="p-3 rounded-lg text-white custom-select flex-1"
+                  value={filterClients}
+                  onChange={handleClientChange}
+                >
+                  <option value="">Todos los Clientes</option>
+                  {clientes.map((cliente) => (
+                    <option key={cliente} value={cliente}>{cliente}</option>
+                  ))}
+                </select>
+                <button
+                  onClick={resetClientFilter}
+                  className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm font-semibold"
+                >
+                  Reiniciar
+                </button>
+              </div>
+            </div>
+          </div>
+          <div className="section-frame">
+            <h3 className="text-lg sm:text-xl font-semibold text-blue-400 text-center mb-4 section-title">Tabla de Líderes</h3>
+            {error ? (
+              <p className="text-red-400 text-center">{error}</p>
+            ) : (
+              <div className="w-full h-[250px] sm:h-[350px]">
+                <canvas ref={chartRef}></canvas>
+              </div>
+            )}
+          </div>
+          <button
+            onClick={() => setView("home")}
+            className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-500 transition-colors font-semibold"
+          >
+            Volver al Inicio
+          </button>
+        </div>
+      );
+
+      // Renderizar la vista de resultados de objetivos
+      const renderObjectives = () => (
+        <div className="space-y-6">
+          <div className="header-container">
+            <h1 className="text-3xl sm:text-4xl font-extrabold text-white mb-2 tracking-wide header-3d">INTERFAZ - VTS - LLAN/AUT</h1>
+            <p className="text-sm sm:text-base text-blue-200 header-3d">
+              Información confidencial · Uso interno exclusivo · Prohibida su reproducción sin autorización
+            </p>
+          </div>
+          <button
+            onClick={() => setView("home")}
+            className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-500 transition-colors font-semibold"
+          >
+            Volver al Inicio
+          </button>
+          <div className="section-frame flex flex-col gap-4">
+            <h2 className="text-2xl sm:text-3xl font-bold text-blue-400 text-center section-title">Progreso general mayoreo</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {companyProgress.map(({ category, sales, target, percentage }) => (
+                <div key={category} className="p-4 bg-gray-800 rounded-lg">
+                  <h3 className="text-lg font-semibold text-white">{category}</h3>
+                  <p className="text-sm text-gray-300">Ventas: {sales.toLocaleString()} / Objetivo: {target.toLocaleString()}</p>
+                  <div className="progress-bar mt-2">
+                    <div
+                      className="progress-bar-fill"
+                      style={{
+                        width: `${Math.min(parseFloat(percentage), 100)}%`,
+                        backgroundColor: categoryColors[category]
+                      }}
+                    ></div>
+                  </div>
+                  <p className="text-right text-sm font-semibold mt-1" style={{ color: categoryColors[category] }}>
+                    {percentage}%
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="flex justify-center gap-4 flex-wrap">
+            <button onClick={() => setObjectivesFilterVend(zoneVendors['TULANCINGO'])} className="custom-button tulancingo-button">TULANCINGO</button>
+            <button onClick={() => setObjectivesFilterVend(zoneVendors['PACHUCA'])} className="custom-button pachuca-button">PACHUCA</button>
+            <button onClick={() => setObjectivesFilterVend(zoneVendors['SAHAGÚN'])} className="custom-button sahagun-button">SAHAGÚN</button>
+            <button onClick={() => setObjectivesFilterVend(zoneVendors['TIZAYUCA'])} className="custom-button tizayuca-button">TIZAYUCA</button>
+            <button onClick={() => setObjectivesFilterVend([])} className="custom-button all-zones-button">Todas las Zonas</button>
+          </div>
+          <div className="section-frame flex flex-col gap-4">
+            <h2 className="text-2xl sm:text-3xl font-bold text-blue-400 text-center section-title">Progreso por Vendedor</h2>
+            <div className="flex justify-center">
+              <select
+                multiple
+                size="3"
+                className="p-3 rounded-lg text-white custom-select w-full sm:w-1/2"
+                value={objectivesFilterVend}
+                onChange={handleObjectivesVendorChange}
+              >
+                <option value="">Todos los Vendedores</option>
+                {vendorCodes.map((code) => (
+                  <option key={code} value={code}>{vendorNames[code] || code}</option>
+                ))}
+              </select>
+            </div>
+            {error ? (
+              <p className="text-red-400 text-center">{error}</p>
+            ) : vendorProgress.length === 0 ? (
+              <p className="text-blue-300 text-center">No hay datos disponibles para los filtros seleccionados</p>
+            ) : (
+              vendorProgress.map(({ vendor, progress }) => (
+                <div key={vendor} className="p-4 bg-gray-800 rounded-lg">
+                  <h3 className="text-lg font-semibold" style={{ color: vendorColors[vendor] || '#FFFFFF' }}>
+                    {vendorNames[vendor] || vendor}
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
+                    {progress.map(({ category, sales, target, percentage }) => (
+                      <div key={category}>
+                        <p className="text-sm text-gray-300">{category}</p>
+                        <p className="text-xs text-gray-400">
+                          Ventas: {sales.toLocaleString()}{target ? ` / Objetivo: ${target.toLocaleString()}` : ''}
+                        </p>
+                        {target ? (
+                          <>
+                            <div className="progress-bar mt-1">
+                              <div
+                                className="progress-bar-fill"
+                                style={{
+                                  width: `${Math.min(parseFloat(percentage), 100)}%`,
+                                  backgroundColor: categoryColors[category]
+                                }}
+                              ></div>
+                            </div>
+                            <p className="text-right text-xs font-semibold mt-1" style={{ color: categoryColors[category] }}>
+                              {percentage}%
+                            </p>
+                          </>
+                        ) : null}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+          <button
+            onClick={() => setView("home")}
+            className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-500 transition-colors font-semibold"
+          >
+            Volver al Inicio
+          </button>
+        </div>
+      );
+
+      return (
+        <div>
+          {view === "home" && renderHome()}
+          {view === "leaders" && renderLeaders()}
+          {view === "objectives" && renderObjectives()}
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<SalesTable />);
+  </script>
+</body>
+</html>
