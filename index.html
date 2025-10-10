@@ -394,7 +394,9 @@
         Acumuladores: '#10B981',
         Lubricantes: '#3B82F6',
         Motobaterias: '#F59E0B',
-        Filtros: '#8B5CF6'
+        Filtros: '#8B5CF6',
+        'Llantas Auto': '#EF4444',
+        'Llantas Camioneta': '#22C55E'
       };
 
       // Mapeo de clasificaciones del CSV a categorías internas
@@ -402,7 +404,9 @@
         '8 MOTOBAT': 'Motobaterias',
         '5 ACUMULAD': 'Acumuladores',
         '6 FILTROS': 'Filtros',
-        '7 LUBRICAN': 'Lubricantes'
+        '7 LUBRICAN': 'Lubricantes',
+        '1 AUTO': 'Llantas Auto',
+        '2 CAMTA': 'Llantas Camioneta'
       };
 
       // Memorización de listas para filtros
@@ -483,8 +487,21 @@
           return acc;
         }, {});
 
+        const totalsByVendor = filteredData.reduce((acc, item) => {
+          const vendor = item.codVend;
+          if (!acc[vendor]) {
+            acc[vendor] = { importe: 0, costo: 0 };
+          }
+          acc[vendor].importe += item.importe;
+          acc[vendor].costo += item.costo || 0;
+          return acc;
+        }, {});
+
         return vendorCodes.map(vendor => {
           const objectives = vendorObjectives[vendor] || {};
+          const totalImporte = totalsByVendor[vendor]?.importe || 0;
+          const totalCosto = totalsByVendor[vendor]?.costo || 0;
+          const utilidad = totalImporte - totalCosto;
           return {
             vendor,
             progress: Object.keys(categoryColors).map(category => ({
@@ -492,7 +509,10 @@
               sales: salesByVendorAndCategory[vendor]?.[category] || 0,
               target: objectives[category] || 0,
               percentage: objectives[category] ? ((salesByVendorAndCategory[vendor]?.[category] || 0) / objectives[category] * 100).toFixed(2) : null
-            }))
+            })),
+            totalImporte,
+            totalCosto,
+            utilidad
           };
         }).filter(v => objectivesFilterVend.length === 0 || objectivesFilterVend.includes(v.vendor));
       }, [filteredData, objectivesFilterVend, vendorCodes]);
@@ -569,6 +589,7 @@
                   codVend: String(row["COD DE VEND"]).trim() || "",
                   cantidad: parseNumber(row["CANTIDAD"]),
                   importe: parseNumber(row["IMPORTE"]),
+                  costo: parseNumber(row["COSTO"]),
                   cliente: row["NOMBRE DEL CLIENTE"]?.trim() || "",
                   codCliente: row["CODIGO DEL CLIENTE"]?.trim() || "",
                   clasificacion: row["CLASIFICACION"]?.trim() || "",
@@ -1045,10 +1066,13 @@
             ) : vendorProgress.length === 0 ? (
               <p className="text-blue-300 text-center">No hay datos disponibles para los filtros seleccionados</p>
             ) : (
-              vendorProgress.map(({ vendor, progress }) => (
+              vendorProgress.map(({ vendor, progress, totalImporte, totalCosto, utilidad }) => (
                 <div key={vendor} className="p-4 bg-gray-800 rounded-lg">
                   <h3 className="text-lg font-semibold" style={{ color: vendorColors[vendor] || '#FFFFFF' }}>
                     {vendorNames[vendor] || vendor}
+                    <span className="text-xs text-gray-400 ml-2">
+                      Importe: <span className="text-green-300">{totalImporte.toLocaleString()}</span> | Costo: <span className="text-red-300">{totalCosto.toLocaleString()}</span> | Utilidad: <span className="text-blue-300">{utilidad.toLocaleString()}</span>
+                    </span>
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
                     {progress.map(({ category, sales, target, percentage }) => (
